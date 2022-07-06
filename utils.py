@@ -22,6 +22,8 @@ def read_file(file_path,time_header,ts_category):
     return df
 
 
+
+
 def first_histogram(df):
     #Histogram with 3 standard deviations
     plt.figure(figsize=(10,5), dpi=100)
@@ -42,6 +44,17 @@ def transform_df_to_hour(df):
     df_hour['year'] = [d.strftime('%Y') for d in df_hour.index]
     df_hour['hour']=df_hour['hour'].astype(int)
     return df_hour
+
+
+def check_onoff(data_hour):
+    data_hour['onoff']= 'off'
+    data_hour.loc[data_hour['acceleration']<= 12,'onoff'] = 'off'
+    data_hour.loc[data_hour['acceleration']> 12,'onoff'] = 'on'
+    return data_hour
+
+def date_filter(df, start_date, end_date):
+    sliced_df = df.loc[(df.index < end_date) & (df.index > start_date)]
+    return sliced_df
 
 def filter_12(df):
     df=df[df.iloc[:,0]>12]
@@ -65,16 +78,23 @@ def main_function(file_path,time_header,ts_category):
     data = read_file(file_path,time_header,ts_category)
     data_hour = transform_df_to_hour(data)
     data_filtered = filter_12(data_hour)
-    return data_filtered
+    data_raw = check_onoff(data_hour)
+    print("-------------succesfully loaded data-------------")
+    return data_filtered, data_raw
+
 
 def df_serial_index(df):
     df_new_index= df.copy()
-    print('df1',df_new_index)
     df_new_index.reset_index(inplace=True)
-    print(df_new_index)
     rolmean_df = df_new_index.iloc[:,1].rolling(50).mean()
     rolstd_df = df_new_index.iloc[:,1].rolling(50).std()
     higher_bound = rolmean_df + 3 *rolstd_df
     lower_bound = rolmean_df - 3 *rolstd_df
     return df_new_index, rolmean_df, rolstd_df
 
+#On/Off with day filter
+
+def on_off_ratio(df, start_date, end_date):
+    df.loc[df['']]
+
+    return onoff_df, 
