@@ -5,12 +5,14 @@ import pandas as pd
 from utils import main_function ,df_serial_index
 import warnings
 from datetime import date
+import base64
 warnings.filterwarnings('ignore')
 
 file_path = "acceleration.csv"
 time_header = 'Time'
 ts_category = 'acceleration'
-
+image_filename = 'assets/scania_symbol.svg'
+encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode() 
 app = Dash(__name__)
 
 #General Quality of the data
@@ -21,59 +23,75 @@ df_sliced = df.copy()
 
 
 app.layout = html.Div(children=[
-    html.H1(children='Timeseries'),
-
-    html.H2(children='Data Quality'),
-    html.Div(children='''
-        Here is some short information of the data you have uploaded
-    '''),
-
-    html.Div(id="pie-graph"),
-
-    html.Div(children='''
-        Please select the dates you want to do your analysis for:
-    '''),    
-    dcc.DatePickerRange(
-        id='my-date-picker-range',
-        min_date_allowed = df.index[0],
-        max_date_allowed = df.index[-1],
-        initial_visible_month = df.index[0],
-        start_date = df.index[0],
-        end_date = df.index[-1]
+    html.Div([
+        html.Div([
+            html.Img(
+                src=app.get_asset_url('scania_symbol.svg').format(encoded_image),
+                id = "logo",
+                ),
+            html.Img(
+                src=app.get_asset_url('scania_wordmark_blue_rgb.svg').format(encoded_image),
+                id = "wordmark",
+                ),                            
+            html.H1(children='Timeseries', id= 'Title'),
+            ], id = 'Header',
+        ),
+        
+        html.P("Summary of data analysis of your selected dataset"),
+        ],
     ),
-    html.Button('Reset Filter',id='reset-button', n_clicks=0),
-    html.Div(id='output-container-date-picker-range'),
-    
-    dcc.Store (id ='sliced-df-value'),
+    html.Div([
+        html.H2(children='Data Quality'),
+        html.Div(children='''
+            Here is some short information of the data you have uploaded
+        '''),
 
-    html.P(children= "Select type of graph"),
+        html.Div(id="pie-graph"),
 
-    dcc.Dropdown(
-        id = "graphtype",
-        options = ['histogram', 'timeseries', 'box'],
-        value = 'histogram',
-        clearable = False,
-    ),
-    dcc.Graph(
-        id='main-graph',
-    ),
+        html.Div(children='''
+            Please select the dates you want to do your analysis for:
+        '''),    
+        dcc.DatePickerRange(
+            id='my-date-picker-range',
+            min_date_allowed = df.index[0],
+            max_date_allowed = df.index[-1],
+            initial_visible_month = df.index[0],
+            start_date = df.index[0],
+            end_date = df.index[-1],
+        ),
+        html.Button('Reset Filter',id='reset-button', n_clicks=0),
+        html.Div(id='output-container-date-picker-range'),
+        
+        dcc.Store (id ='sliced-df-value'),
 
-    html.P(children= "Please set how many standard deviations to use as control limit"),
+        html.P(children= "Select type of graph"),
 
-    dcc.Input(id='stdtolerance', type='number', min=1, max=4, step=1, value=3),
-    
+        dcc.Dropdown(
+            id = "graphtype",
+            options = ['histogram', 'timeseries', 'box'],
+            value = 'histogram',
+            clearable = False,
+        ),
+        dcc.Graph(
+            id='main-graph',
+        ),
 
-    dcc.Graph(
-        id='tolerance-graph',
-    ),    
-    
+        html.P(children= "Please set how many standard deviations to use as control limit"),
+
+        dcc.Input(id='stdtolerance', type='number', min=1, max=4, step=1, value=3),
+        
+
+        dcc.Graph(
+            id='tolerance-graph',
+        ),    
+    ])
 ])
 
 @app.callback(Output('pie-graph', 'children'),
               Input('pie-graph', 'children'),)
 def populate_graph(dummy):
     pie_graph = px.pie(df_raw,  names= 'onoff', title='Up and Down time - Pie Chart',color_discrete_sequence=['#0F3263','#B0B7C4'])
-    pie_graph.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans Headline')
+    pie_graph.update_layout(plot_bgcolor = 'rgb(219,250,251)', font_family = 'Scania Sans')
     return html.Div([
         html.H5('Pie chart of uptime'),
         dcc.Graph(id="graph", figure=pie_graph),
@@ -125,28 +143,28 @@ def display_graph(graphtype, df_sliced):
                 labels ={"y" : f"{df.columns[0]}"},                        
                 title = 'Histogram',
                 color_discrete_sequence=['#0F3263'])
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans Headline')
+        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
                    
     if graphtype == 'timeseries':
         fig = px.line(df, x=df.index, y=df.iloc[:,0],
                 labels ={"y" : f"{df.columns[0]}"},
                 title = 'Time-Series',
                 color_discrete_sequence=['#0F3263'])  
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans Headline')
+        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
         fig.add_hline(
         y=16, line_width=1, line_dash="dash", 
         line_color="#D6001C") 
         fig.add_hline(
         y=13, line_width=1, line_dash="dash", 
         line_color="#D6001C")   
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans Headline')
+        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
 
     if graphtype == 'box':
         fig = px.box(df, x=df.iloc[:,1], y=df.iloc[:,0], color=df.iloc[:,1],
                 labels ={"y" : f"{df.columns[0]}"},
                 title = 'Box-Plot',
                 color_discrete_sequence=['#001533','#0F3263','#2058A8','#4A89F3','#87AFE8'])
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans Headline')     
+        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')     
     return fig
 
 
@@ -176,7 +194,8 @@ def display_tolerances(stdtolerance):
         x=filtered_df.index,
         y=higher_bound,
         name="UCL",
-        line_color='#D6001C'
+        line_color='#D6001C',
+        
 
     )
     lower_bound_plot = go.Scatter(
