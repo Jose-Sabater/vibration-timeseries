@@ -5,7 +5,9 @@ A project to analyze time series data from vibration and temperature sensors. Th
 It is further completed with some forecasting  
 There is also a dash app built within to visualize all results for the non-programmer.
 
-![plot](./assets/output.png)
+![plot](./assets/histogram.png)  
+![plot](./assets/violin_charts.png)  
+![plot](./assets/forecast.png)
 
 ## Usage
 exploration.ipynb is an early data exploration of temperature,acceleration
@@ -23,7 +25,7 @@ run app.py is the Dash application which feeds from utils and currently accelera
 José María Sabater
 
 ## License
-Open for Scania
+Open
 
 ## Project status
 Work in progress
