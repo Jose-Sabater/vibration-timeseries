@@ -1,3 +1,5 @@
 *venv
 *Scania_Sans
 *test.py
+/database
+__pycache__/
