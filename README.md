@@ -5,6 +5,7 @@ A project to analyze time series data from vibration and temperature sensors. Th
 It is further completed with some forecasting  
 There is also a dash app built within to visualize all results for the non-programmer.
 
+![plot](./assets/output.png)
 
 ## Usage
 exploration.ipynb is an early data exploration of temperature,acceleration
