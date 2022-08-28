@@ -1,0 +1,104 @@
+@font-face {
+    font-family: 'Scania Sans';
+    font-weight: normal;  
+    src: url("ScaniaSansCY-Bold.woff") format("woff");
+  }
+  
+@font-face {
+    font-family: 'Scania Sans Headline';
+    font-weight: bold;
+    src: url("ScaniaSansCYHeadline-Bold.woff") format("woff"), 
+
+}
+@font-face {
+  font-family: 'Scania Sans Headline Bold';
+  font-weight: bold;
+  src: url("ScaniaSansCYHeadline-Bold.woff") format("woff");
+}
+body {
+    background-color:#F9FAFB;
+    margin: 0;
+    padding: 0;
+    font-family: 'Scania Sans';
+    color:#041E42
+  }
+
+h1 {
+  text-transform: uppercase;
+  font-size: 80px;
+  color: #041E42;
+  text-align: center;
+  letter-spacing: 0em ;
+  font-family: 'Scania Sans Headline Bold';
+}
+#Header {
+  width: 100%; 
+  overflow: hidden;
+  /* display: inline-block; */
+  line-height: 80px;
+  letter-spacing: 0em ;
+  font-family: 'Scania Sans Headline Bold';
+  /* text-align: center; */
+}
+#Title {
+  text-align: center;
+  font-size: 80px;
+  letter-spacing: 0em ;
+  color: #041E42;
+  font-family: 'Scania Sans Headline Bold';
+  ;
+}
+#wordmark {
+  float : left;
+  width: 200px;
+  margin-bottom: 0px;
+  height : '100px';
+  ;
+}
+#logo {
+    float: right;
+    width: 100px;
+    margin-bottom: 0px;
+    height : 80px;
+    ;
+}
+/* .right {
+  position: absolute;
+  right: 0px;
+  width: 300px;
+  border: 3px solid #73AD21;
+  padding: 10px;
+} */
+
+
+#reset-button {
+    width: 240px;
+    height: 40px;
+    cursor: pointer;
+    border: 0px;
+    border-radius: 10px;
+    background-color: #0F3263;
+    color: #F9FAFB;
+    text-transform: uppercase;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight : bold
+  }
+#my-date-picker-range {
+
+  cursor: pointer;
+  border: 2px solid #0F3263;
+  border-radius: 10px;
+  background-color: #0F3263;
+  color: #F9FAFB;
+  margin-right: 10px;
+  text-transform: uppercase;
+  font-size: 15px;
+  font-family: 'Scania Sans';
+
+}
+
+
+#pie-graph   {
+  background-color: #F9FAFB;
+}
