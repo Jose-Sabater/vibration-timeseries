@@ -82,7 +82,7 @@ def main_function(file_path,time_header,ts_category):
     print("-------------succesfully loaded data-------------")
     return data_filtered, data_raw
 
-
+#Function used for the stnd deviation and rolling mean graphs
 def df_serial_index(df):
     df_new_index= df.copy()
     df_new_index.reset_index(inplace=True)
@@ -92,9 +92,23 @@ def df_serial_index(df):
     lower_bound = rolmean_df - 3 *rolstd_df
     return df_new_index, rolmean_df, rolstd_df
 
-#On/Off with day filter
 
-def on_off_ratio(df, start_date, end_date):
-    df.loc[df['']]
+#Requisitie is that your dataset is stationary 
+#We need to look at what data comes in, right now the filter is for data above 12, but we should remove all days that have at least one data point so that we can
+#analyse peridiocity properly
+def df_test_train(df, size):
+    df_new_index= df.copy()
+    df_new_index.reset_index(inplace=True)
+    acceleration = df_new_index.iloc[:,1]
+    df_train = acceleration[acceleration.index < size]
+    df_test = acceleration[acceleration.index >= size]
+    acceleration['label']=''
+    print(type(acceleration.index))
+    # acceleration.loc[acceleration.index < size,'label']='train'
+    # acceleration.loc[acceleration.index >= size,'label']='test'
 
-    return onoff_df, 
+    return df_test, df_train, acceleration
+
+# #The idea is that you have a dropdown that shows you options to select different models. Then you can see which fits your dataset best and select it
+# def forecast_df(df):
+
