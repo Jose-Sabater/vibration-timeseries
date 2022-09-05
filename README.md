@@ -10,9 +10,9 @@ There is also a dash app built within to visualize all results for the non-progr
 ![plot](./assets/forecast.png)
 
 ## Usage
-exploration.ipynb is an early data exploration of temperature,acceleration
-acceleration.ipynb is a more thorough exploration of the data including forecasting at the end
-run app.py is the Dash application which feeds from utils and currently acceleration.csv
+exploration.ipynb is an early data exploration of temperature,acceleration  
+acceleration.ipynb is a more thorough exploration of the data including forecasting at the end  
+run app.py is the Dash application which feeds from utils and currently acceleration.csv  
 
 ## Roadmap
 
