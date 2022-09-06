@@ -102,10 +102,11 @@ def df_test_train(df, size):
     acceleration = df_new_index.iloc[:,1]
     df_train = acceleration[acceleration.index < size]
     df_test = acceleration[acceleration.index >= size]
-    acceleration['label']=''
-    print(type(acceleration.index))
-    # acceleration.loc[acceleration.index < size,'label']='train'
-    # acceleration.loc[acceleration.index >= size,'label']='test'
+    acceleration = pd.Series.to_frame(acceleration)
+    acceleration['label']= ''
+  
+    acceleration.loc[acceleration.index < size,'label']='train'
+    acceleration.loc[acceleration.index >= size,'label']='test'
 
     return df_test, df_train, acceleration
 

@@ -6,6 +6,8 @@ from utils import main_function ,df_serial_index, df_test_train
 import warnings
 from datetime import date
 import base64
+from statsmodels.tsa.arima.model import ARIMA
+import time
 warnings.filterwarnings('ignore')
 
 file_path = "acceleration.csv"
@@ -93,10 +95,17 @@ app.layout = html.Div(children=[
 
     html.Div([
         html.H2(children="Forecasting"),
-        html.P(children=f"Your total dataaset is {len(df)} rows long"),
+        html.P(children=f"Your total dataset is {len(df)} rows long"),
         html.P(children= f"Please select the size you would like for training (recommended is {round(0.85*(len(df)))})"),
-        dcc.Input(id='train_size_input', type='number', min=len(df)/2, max=len(df)*0.98, step=100, value=round(len(df)*0.8)),
-        dcc.Graph(id='train_test_graph')
+        dcc.Input(id='train_size_input', type='number', min=len(df)/2, max=len(df)*0.98, step=1, value=round(len(df)*0.8)),
+        html.P(children="Select the type of forecast you would like to use. Autoregressive integrated moving average or seasonl"),
+        dcc.Graph(id='train_test_graph'),
+        dcc.Dropdown(id='forecast-model',options = ['Arima', 'Sarima'], value="Arima", clearable = False),
+        dcc.Input(id='p-value', type='number', min=0, max=50, step=1, value=0),
+        dcc.Input(id='d-value', type='number', min=0, max=50, step=1, value=0),
+        dcc.Input(id='q-value', type='number', min=0, max=50, step=1, value=0),
+        dcc.Graph(id='fitted_model_graph')
+
     ])
 ])
 
@@ -224,14 +233,50 @@ def display_tolerances(stdtolerance):
 
 @app.callback(
     Output('train_test_graph','figure'),
-    Input('train_size_input', 'value')
+    Output('fitted_model_graph','figure'),
+    Input('train_size_input', 'value'),
+    Input('p-value', 'value'),
+    Input('d-value', 'value'),
+    Input('q-value', 'value'),
     )
 
-def train_test(df_size):
+def train_test(df_size, p, d, q):
     df_train, df_test , acceleration= df_test_train(df, df_size)
     fig = px.line(acceleration, color='label')
-    
-    return fig
-                 
+    start_time = time.time()
+    print("starting Arima modeling")
+    model=ARIMA(df_train, order = (p,d,q))
+    results_ARIMA = model.fit()
+    end_time = time.time()
+    print(f"Finished loading Arima {end_time-start_time}")
+    original_plot= go.Scatter(
+        x = df_train.index,
+        y = df_train,
+        name = "Original Model",
+        line_color = "green"
+    )
+    fitted_plot = go.Scatter(
+        x = df_train.index,
+        y = results_ARIMA.fittedvalues,
+        name = "Fitted model",
+        line_color = 'red')
+
+
+    data = [original_plot, fitted_plot]
+    fig2 = go.Figure(data=data)
+    # plt.figure(figsize=(16,5))
+    # plt.plot(df_test_train, color = 'green')
+    # plt.plot(results_ARIMA.fittedvalues,color= 'red')
+    # plt.title(f'RSS:{sum(results_ARIMA.fittedvalues-df_test_train)**2}')
+
+
+
+    return fig, fig2
+
+
+#Include also SARIMA, and SARIMAX
+#plot autocorrelation function somewhere
+
+
 if __name__ == '__main__':
     app.run_server(debug=True)
