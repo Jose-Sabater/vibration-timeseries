@@ -2,7 +2,7 @@ from dash import Dash, html, dcc, Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-from utils import main_function ,df_serial_index
+from utils import main_function ,df_serial_index, df_test_train
 import warnings
 from datetime import date
 import base64
@@ -21,7 +21,8 @@ app = Dash(__name__)
 df, df_raw = main_function (file_path, time_header, ts_category)
 df_sliced = df.copy()
 
-
+df_test, df_train, acceleration = df_test_train(df, 1300)
+print(df_test)
 app.layout = html.Div(children=[
     html.Div([
         html.Div([
@@ -45,8 +46,12 @@ app.layout = html.Div(children=[
         html.Div(children='''
             Here is some short information of the data you have uploaded
         '''),
+        html.Div([
+                html.H5('Pie chart of uptime'),
+                dcc.Graph(id="pie-graph"),
+                html.Hr(),
 
-        html.Div(id="pie-graph"),
+                ]),
 
         html.Div(children='''
             Please select the dates you want to do your analysis for:
@@ -84,20 +89,26 @@ app.layout = html.Div(children=[
         dcc.Graph(
             id='tolerance-graph',
         ),    
+    ]),
+
+    html.Div([
+        html.H2(children="Forecasting"),
+        html.P(children=f"Your total dataaset is {len(df)} rows long"),
+        html.P(children= f"Please select the size you would like for training (recommended is {round(0.85*(len(df)))})"),
+        dcc.Input(id='train_size_input', type='number', min=len(df)/2, max=len(df)*0.98, step=100, value=round(len(df)*0.8)),
+        dcc.Graph(id='train_test_graph')
     ])
 ])
 
-@app.callback(Output('pie-graph', 'children'),
-              Input('pie-graph', 'children'),)
+@app.callback(Output('pie-graph', 'figure'),
+              Input('pie-graph', 'figure'),)
 def populate_graph(dummy):
     pie_graph = px.pie(df_raw,  names= 'onoff', title='Up and Down time - Pie Chart',color_discrete_sequence=['#0F3263','#B0B7C4'])
     pie_graph.update_layout(plot_bgcolor = 'rgb(219,250,251)', font_family = 'Scania Sans')
-    return html.Div([
-        html.H5('Pie chart of uptime'),
-        dcc.Graph(id="graph", figure=pie_graph),
-        html.Hr(),
+    return pie_graph
 
-        ])
+
+       
 
 
 @app.callback(
@@ -210,6 +221,17 @@ def display_tolerances(stdtolerance):
     fig2
     return fig2.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
 
+
+@app.callback(
+    Output('train_test_graph','figure'),
+    Input('train_size_input', 'value')
+    )
+
+def train_test(df_size):
+    df_train, df_test , acceleration= df_test_train(df, df_size)
+    fig = px.line(acceleration, color='label')
+    
+    return fig
                  
 if __name__ == '__main__':
     app.run_server(debug=True)
