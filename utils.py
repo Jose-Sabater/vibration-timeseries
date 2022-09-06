@@ -1,7 +1,7 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
-
+ 
 # file_path = "acceleration.csv"
 # time_header = 'Time'
 # ts_category = 'acceleration'
