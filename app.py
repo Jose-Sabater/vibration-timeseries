@@ -7,6 +7,7 @@ import warnings
 from datetime import date
 import base64
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import time
 warnings.filterwarnings('ignore')
 
@@ -68,11 +69,8 @@ app.layout = html.Div(children=[
         ),
         html.Button('Reset Filter',id='reset-button', n_clicks=0),
         html.Div(id='output-container-date-picker-range'),
-        
         dcc.Store (id ='sliced-df-value'),
-
         html.P(children= "Select type of graph"),
-
         dcc.Dropdown(
             id = "graphtype",
             options = ['histogram', 'timeseries', 'box'],
@@ -82,12 +80,8 @@ app.layout = html.Div(children=[
         dcc.Graph(
             id='main-graph',
         ),
-
         html.P(children= "Please set how many standard deviations to use as control limit"),
-
         dcc.Input(id='stdtolerance', type='number', min=1, max=4, step=1, value=3),
-        
-
         dcc.Graph(
             id='tolerance-graph',
         ),    
@@ -98,12 +92,16 @@ app.layout = html.Div(children=[
         html.P(children=f"Your total dataset is {len(df)} rows long"),
         html.P(children= f"Please select the size you would like for training (recommended is {round(0.85*(len(df)))})"),
         dcc.Input(id='train_size_input', type='number', min=len(df)/2, max=len(df)*0.98, step=1, value=round(len(df)*0.8)),
-        html.P(children="Select the type of forecast you would like to use. Autoregressive integrated moving average or seasonl"),
         dcc.Graph(id='train_test_graph'),
+        html.P(children="Select the type of forecast you would like to use. Autoregressive integrated moving average or seasonal"),
         dcc.Dropdown(id='forecast-model',options = ['Arima', 'Sarima'], value="Arima", clearable = False),
-        dcc.Input(id='p-value', type='number', min=0, max=50, step=1, value=0),
-        dcc.Input(id='d-value', type='number', min=0, max=50, step=1, value=0),
-        dcc.Input(id='q-value', type='number', min=0, max=50, step=1, value=0),
+        html.H4('Lets choose your trend elements')
+        html.H4('p-Value:',style={'display':'inline-block','margin-right':20} ),
+        dcc.Input(id='p-value', type='number', min=0, max=50, step=1, value=1,style={'display':'inline-block','margin-right':20}),
+        html.H4('d-Value:',style={'display':'inline-block','margin-right':20} ),
+        dcc.Input(id='d-value', type='number', min=0, max=50, step=1, value=0 ,style={'display':'inline-block','margin-right':20}),
+        html.H4('q-Value:',style={'display':'inline-block','margin-right':20} ),
+        dcc.Input(id='q-value', type='number', min=0, max=50, step=1, value=0, style={'display':'inline-block','margin-right':20}),
         dcc.Graph(id='fitted_model_graph')
 
     ])
@@ -238,28 +236,53 @@ def display_tolerances(stdtolerance):
     Input('p-value', 'value'),
     Input('d-value', 'value'),
     Input('q-value', 'value'),
+    Input('forecast-model', 'value'),
     )
 
-def train_test(df_size, p, d, q):
+def train_test(df_size, p, d, q, model):
     df_train, df_test , acceleration= df_test_train(df, df_size)
     fig = px.line(acceleration, color='label')
-    start_time = time.time()
-    print("starting Arima modeling")
-    model=ARIMA(df_train, order = (p,d,q))
-    results_ARIMA = model.fit()
-    end_time = time.time()
-    print(f"Finished loading Arima {end_time-start_time}")
-    original_plot= go.Scatter(
-        x = df_train.index,
-        y = df_train,
-        name = "Original Model",
-        line_color = "green"
-    )
-    fitted_plot = go.Scatter(
-        x = df_train.index,
-        y = results_ARIMA.fittedvalues,
-        name = "Fitted model",
-        line_color = 'red')
+
+    if model == "Arima":
+        start_time = time.time()
+        print("starting Arima modeling")
+        model=ARIMA(df_train, order = (p,d,q))
+        results_ARIMA = model.fit()
+        end_time = time.time()
+        print(f"Finished loading Arima {end_time-start_time}")
+        original_plot= go.Scatter(
+            x = df_train.index,
+            y = df_train,
+            name = "Original Model",
+            line_color = "green"
+        )
+        fitted_plot = go.Scatter(
+            x = df_train.index,
+            y = results_ARIMA.fittedvalues,
+            name = "Fitted model",
+            line_color = 'red'
+        )
+
+    if model == "Sarima":
+        start_time = time.time()
+        print("starting Arima modeling")
+        model=SARIMAX(df_train, order = (p,d,q))
+        results_SARIMA = model.fit()
+        end_time = time.time()
+        print(f"Finished loading Arima {end_time-start_time}")
+        original_plot= go.Scatter(
+            x = df_train.index,
+            y = df_train,
+            name = "Original Model",
+            line_color = "green"
+        )
+        fitted_plot = go.Scatter(
+            x = df_train.index,
+            y = results_SARIMA.fittedvalues,
+            name = "Fitted model",
+            line_color = 'red'
+        )
+
 
 
     data = [original_plot, fitted_plot]
