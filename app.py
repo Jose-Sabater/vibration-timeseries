@@ -100,7 +100,7 @@ app.layout = html.Div(children=[
     ]),
 
     html.Div([
-        html.H2(children="Forecasting"),
+        html.H2(children="Forecasting Preparation"),
         html.P(children=f"Your total dataset is {len(df)} rows long"),
         html.P(children= f"Please select the size you would like for training (recommended is {round(0.85*(len(df)))})"),
         dcc.Input(id='train_size_input', type='number', min=len(df)/2, max=len(df)*0.98, step=1, value=round(len(df)*0.8)),
@@ -118,8 +118,12 @@ app.layout = html.Div(children=[
         html.H4('q-Value:',style={'display':'inline-block','margin-right':20} ),
         dcc.Input(id='q-value', type='number', min=0, max=50, step=1, value=0, style={'display':'inline-block','margin-right':20}),
         dcc.Graph(id='fitted_model_graph'),
+        html.Div(id='rmse'),
         html.H4('Here are your predictions:'),
         dcc.Graph(id='forecast_plot'),
+        html.H4('Please introduce the amount of values you want to predict:',style={'display':'inline-block','margin-right':20} ),
+        dcc.Input(id='predictions', type='number', style={'display':'inline-block','margin-right':20} ),
+        dcc.Graph(id='prediction_graph'),
 
     ])
 ])
@@ -250,6 +254,8 @@ def display_tolerances(stdtolerance):
     Output('train_test_graph','figure'),
     Output('fitted_model_graph','figure'),
     Output('forecast_plot', 'figure'),
+    Output('rmse','children'),
+    Output('prediction_graph', 'figure'),
     Input('train_size_input', 'value'),
     Input('p-value', 'value'),
     Input('d-value', 'value'),
@@ -332,16 +338,40 @@ def train_test(df_size, p, d, q, model):
     forecast_plot = go.Scatter(
         x = df_test.index,
         y = prediction_out,
-        name= 'prediction',
+        name= 'forecast',
         line_color = scania_green
     )
     data2 = [train_plot, test_plot, forecast_plot]
     forecast_overlay = go.Figure(data=data2)
     
+    #Predicting the future
+    # prediction = results_model.get_forecast(100)
+    # prediction_df = prediction.conf_int(alpha = 0.05) 
+    # prediction_df["predictions"] = results_model.predict(start = prediction_df.index[0], end = prediction_df.index[-1])
+    # prediction_df.index = pd.RangeIndex(start=df.index[-1], stop=df.index[-1]+100, step=1)
+    # prediction_out = prediction_df["predictions"]
+
+    #Plot
+    prediction_plot = go.Scatter(
+        x = prediction_out.index,
+        y = prediction_out,
+        name = 'prediction',
+        line_color = scania_green
+    )
+    df_plot = go.Scatter(
+        x = df.index,
+        y = df.iloc[:,0],
+        name = 'original dataset',
+        line_color = scania_red
+    )
+
+    data3 = [prediction_plot, df_plot]
+    prediction_plot = go.Figure (data = data3)
+
     fig.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
     fig2.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
     forecast_overlay.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
-    return fig, fig2, forecast_overlay
+    return fig, fig2, forecast_overlay, html.H5(f"Your RMSE value is: {rmse}"), prediction_plot
 
 
 #Include also SARIMA, and SARIMAX
