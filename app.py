@@ -8,6 +8,8 @@ from datetime import date
 import base64
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from sklearn.metrics import mean_squared_error
+import numpy as np
 import time
 warnings.filterwarnings('ignore')
 
@@ -18,8 +20,18 @@ image_filename = 'assets/scania_symbol.svg'
 encoded_image = base64.b64encode(open(image_filename, 'rb').read()).decode() 
 app = Dash(__name__)
 
-#General Quality of the data
 
+#Colors
+scania_font = 'Scania-Sans'
+scania_blue0 = '#001533'
+scania_blue1 = '#0F3263'
+scania_blue2 = '#2058A8'
+scania_blue3 = '#4A89F3'
+scania_blue4 = '#87AFE8'
+scania_red = '#D6001C'
+scania_green = '#1DAB8B'
+scania_white = '#F9FAFB'
+scania_gray = '#B0B7C4'
 
 df, df_raw = main_function (file_path, time_header, ts_category)
 df_sliced = df.copy()
@@ -95,14 +107,19 @@ app.layout = html.Div(children=[
         dcc.Graph(id='train_test_graph'),
         html.P(children="Select the type of forecast you would like to use. Autoregressive integrated moving average or seasonal"),
         dcc.Dropdown(id='forecast-model',options = ['Arima', 'Sarima'], value="Arima", clearable = False),
-        html.H4('Lets choose your trend elements')
+        html.H4('Lets choose your trend elements'),
+        html.H4('p is your Trend autoregression order'),
+        html.H4('d is the Trend difference order'),
+        html.H4('q is the Trend moving average order.'),
         html.H4('p-Value:',style={'display':'inline-block','margin-right':20} ),
         dcc.Input(id='p-value', type='number', min=0, max=50, step=1, value=1,style={'display':'inline-block','margin-right':20}),
         html.H4('d-Value:',style={'display':'inline-block','margin-right':20} ),
         dcc.Input(id='d-value', type='number', min=0, max=50, step=1, value=0 ,style={'display':'inline-block','margin-right':20}),
         html.H4('q-Value:',style={'display':'inline-block','margin-right':20} ),
         dcc.Input(id='q-value', type='number', min=0, max=50, step=1, value=0, style={'display':'inline-block','margin-right':20}),
-        dcc.Graph(id='fitted_model_graph')
+        dcc.Graph(id='fitted_model_graph'),
+        html.H4('Here are your predictions:'),
+        dcc.Graph(id='forecast_plot'),
 
     ])
 ])
@@ -110,8 +127,8 @@ app.layout = html.Div(children=[
 @app.callback(Output('pie-graph', 'figure'),
               Input('pie-graph', 'figure'),)
 def populate_graph(dummy):
-    pie_graph = px.pie(df_raw,  names= 'onoff', title='Up and Down time - Pie Chart',color_discrete_sequence=['#0F3263','#B0B7C4'])
-    pie_graph.update_layout(plot_bgcolor = 'rgb(219,250,251)', font_family = 'Scania Sans')
+    pie_graph = px.pie(df_raw,  names= 'onoff', title='Uptime of the machinery',color_discrete_sequence=[scania_blue1,'#B0B7C4'])
+    pie_graph.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
     return pie_graph
 
 
@@ -160,29 +177,29 @@ def display_graph(graphtype, df_sliced):
         fig = px.histogram(df, y=df.iloc[:,0], nbins= 20,
                 labels ={"y" : f"{df.columns[0]}"},                        
                 title = 'Histogram',
-                color_discrete_sequence=['#0F3263'])
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
+                color_discrete_sequence=[scania_blue1])
+        fig.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
                    
     if graphtype == 'timeseries':
         fig = px.line(df, x=df.index, y=df.iloc[:,0],
                 labels ={"y" : f"{df.columns[0]}"},
                 title = 'Time-Series',
-                color_discrete_sequence=['#0F3263'])  
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
+                color_discrete_sequence=[scania_blue1])  
+        fig.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
         fig.add_hline(
         y=16, line_width=1, line_dash="dash", 
         line_color="#D6001C") 
         fig.add_hline(
         y=13, line_width=1, line_dash="dash", 
         line_color="#D6001C")   
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
+        fig.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
 
     if graphtype == 'box':
         fig = px.box(df, x=df.iloc[:,1], y=df.iloc[:,0], color=df.iloc[:,1],
                 labels ={"y" : f"{df.columns[0]}"},
                 title = 'Box-Plot',
-                color_discrete_sequence=['#001533','#0F3263','#2058A8','#4A89F3','#87AFE8'])
-        fig.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')     
+                color_discrete_sequence=[scania_blue0, scania_blue1,scania_blue2, scania_blue3, scania_blue4])
+        fig.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')     
     return fig
 
 
@@ -199,14 +216,14 @@ def display_tolerances(stdtolerance):
         x=filtered_df.index,
         y=rolmean,
         name="rolmean",
-        line_color= '#1DAB8B'
+        line_color= scania_green
 
     )
     df_plot = go.Scatter(
         x=filtered_df.index,
         y=filtered_df.iloc[:,1],
         name=filtered_df.columns[1],
-        line_color='#0F3263'
+        line_color=scania_blue1
     )
     higher_bound_plot = go.Scatter(
         x=filtered_df.index,
@@ -225,13 +242,14 @@ def display_tolerances(stdtolerance):
     )
     data = [rolmean_plot, df_plot, higher_bound_plot, lower_bound_plot]
     fig2 = go.Figure(data=data)
-    fig2
-    return fig2.update_layout(plot_bgcolor = '#F9FAFB', font_family = 'Scania Sans')
+    fig2.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans',)
+    return fig2
 
 
 @app.callback(
     Output('train_test_graph','figure'),
     Output('fitted_model_graph','figure'),
+    Output('forecast_plot', 'figure'),
     Input('train_size_input', 'value'),
     Input('p-value', 'value'),
     Input('d-value', 'value'),
@@ -241,60 +259,89 @@ def display_tolerances(stdtolerance):
 
 def train_test(df_size, p, d, q, model):
     df_train, df_test , acceleration= df_test_train(df, df_size)
-    fig = px.line(acceleration, color='label')
+    fig = px.line(acceleration, color='label', color_discrete_sequence=[scania_blue1,scania_red])
 
     if model == "Arima":
         start_time = time.time()
         print("starting Arima modeling")
         model=ARIMA(df_train, order = (p,d,q))
-        results_ARIMA = model.fit()
+        results_model = model.fit()
         end_time = time.time()
         print(f"Finished loading Arima {end_time-start_time}")
+        print(results_model.loglikelihood_burn, results_model.nobs_diffuse)
         original_plot= go.Scatter(
             x = df_train.index,
             y = df_train,
             name = "Original Model",
-            line_color = "green"
+            line_color = scania_gray
         )
         fitted_plot = go.Scatter(
             x = df_train.index,
-            y = results_ARIMA.fittedvalues,
+            y = results_model.fittedvalues,
             name = "Fitted model",
-            line_color = 'red'
+            line_color = scania_red
         )
 
     if model == "Sarima":
         start_time = time.time()
-        print("starting Arima modeling")
+        print("starting Sarima modeling")
         model=SARIMAX(df_train, order = (p,d,q))
-        results_SARIMA = model.fit()
+        results_model = model.fit()
+        print(results_model.loglikelihood_burn, results_model.nobs_diffuse)
         end_time = time.time()
-        print(f"Finished loading Arima {end_time-start_time}")
+        print(f"Finished loading SArima {end_time-start_time}")
         original_plot= go.Scatter(
             x = df_train.index,
             y = df_train,
             name = "Original Model",
-            line_color = "green"
+            line_color = scania_gray
         )
         fitted_plot = go.Scatter(
             x = df_train.index,
-            y = results_SARIMA.fittedvalues,
+            y = results_model.fittedvalues,
             name = "Fitted model",
-            line_color = 'red'
+            line_color = scania_red
         )
 
-
+    prediction = results_model.get_forecast(len(df_test.index))
+    prediction_df = prediction.conf_int(alpha = 0.05) 
+    prediction_df["Predictions"] = results_model.predict(start = prediction_df.index[0], end = prediction_df.index[-1])
+    prediction_df.index = df_test.index
+    prediction_out = prediction_df["Predictions"]
+    rmse = np.sqrt(mean_squared_error(df_test.values, prediction_df["Predictions"]))
+    print("RMSE: ",rmse)
+    print(prediction_out)
 
     data = [original_plot, fitted_plot]
     fig2 = go.Figure(data=data)
-    # plt.figure(figsize=(16,5))
-    # plt.plot(df_test_train, color = 'green')
-    # plt.plot(results_ARIMA.fittedvalues,color= 'red')
-    # plt.title(f'RSS:{sum(results_ARIMA.fittedvalues-df_test_train)**2}')
 
+    train_plot = go.Scatter(
+        x = df_train.index,
+        y = df_train,
+        name= 'training data',
+        line_color = scania_blue1
+    )
 
+    test_plot = go.Scatter(
+        x = df_test.index,
+        y = df_test,
+        name= 'test data',
+        line_color = scania_red
+    )
 
-    return fig, fig2
+    forecast_plot = go.Scatter(
+        x = df_test.index,
+        y = prediction_out,
+        name= 'prediction',
+        line_color = scania_green
+    )
+    data2 = [train_plot, test_plot, forecast_plot]
+    forecast_overlay = go.Figure(data=data2)
+    
+    fig.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
+    fig2.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
+    forecast_overlay.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
+    return fig, fig2, forecast_overlay
 
 
 #Include also SARIMA, and SARIMAX

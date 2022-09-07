@@ -22,6 +22,9 @@ body {
     font-family: 'Scania Sans';
     color:#041E42
   }
+.plot-container{
+  background-color:#F9FAFB;
+}
 
 h1 {
   text-transform: uppercase;
@@ -30,6 +33,11 @@ h1 {
   text-align: center;
   letter-spacing: 0em ;
   font-family: 'Scania Sans Headline Bold';
+}
+h4 {
+  color: #041E42;
+  letter-spacing: 0em ;
+  font-family: 'Scania Sans';
 }
 #Header {
   width: 100%; 
@@ -101,4 +109,8 @@ h1 {
 
 #pie-graph   {
   background-color: #F9FAFB;
+}
+
+.dropdown-labels {
+  font-family: 'Scania Sans';
 }

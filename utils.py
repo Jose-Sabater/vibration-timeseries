@@ -108,7 +108,7 @@ def df_test_train(df, size):
     acceleration.loc[acceleration.index < size,'label']='train'
     acceleration.loc[acceleration.index >= size,'label']='test'
 
-    return df_test, df_train, acceleration
+    return df_train, df_test, acceleration
 
 # #The idea is that you have a dropdown that shows you options to select different models. Then you can see which fits your dataset best and select it
 # def forecast_df(df):
