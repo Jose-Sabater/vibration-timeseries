@@ -122,7 +122,7 @@ app.layout = html.Div(children=[
         html.H4('Here are your predictions:'),
         dcc.Graph(id='forecast_plot'),
         html.H4('Please introduce the amount of values you want to predict:',style={'display':'inline-block','margin-right':20} ),
-        dcc.Input(id='predictions', type='number', style={'display':'inline-block','margin-right':20} ),
+        dcc.Input(id='predictions', type='number',value=100, style={'display':'inline-block','margin-right':20} ),
         dcc.Graph(id='prediction_graph'),
 
     ])
@@ -261,9 +261,10 @@ def display_tolerances(stdtolerance):
     Input('d-value', 'value'),
     Input('q-value', 'value'),
     Input('forecast-model', 'value'),
+    Input('predictions', 'value')
     )
 
-def train_test(df_size, p, d, q, model):
+def train_test(df_size, p, d, q, model,prediction_size):
     df_train, df_test , acceleration= df_test_train(df, df_size)
     fig = px.line(acceleration, color='label', color_discrete_sequence=[scania_blue1,scania_red])
 
@@ -273,6 +274,7 @@ def train_test(df_size, p, d, q, model):
         model=ARIMA(df_train, order = (p,d,q))
         results_model = model.fit()
         end_time = time.time()
+        model_final_prediction = ARIMA(acceleration.iloc[:,0], order = (p,d,q))
         print(f"Finished loading Arima {end_time-start_time}")
         print(results_model.loglikelihood_burn, results_model.nobs_diffuse)
         original_plot= go.Scatter(
@@ -295,6 +297,7 @@ def train_test(df_size, p, d, q, model):
         results_model = model.fit()
         print(results_model.loglikelihood_burn, results_model.nobs_diffuse)
         end_time = time.time()
+        model_final_prediction = ARIMA(acceleration.iloc[:,0], order = (p,d,q))
         print(f"Finished loading SArima {end_time-start_time}")
         original_plot= go.Scatter(
             x = df_train.index,
@@ -316,7 +319,6 @@ def train_test(df_size, p, d, q, model):
     prediction_out = prediction_df["Predictions"]
     rmse = np.sqrt(mean_squared_error(df_test.values, prediction_df["Predictions"]))
     print("RMSE: ",rmse)
-    print(prediction_out)
 
     data = [original_plot, fitted_plot]
     fig2 = go.Figure(data=data)
@@ -343,26 +345,29 @@ def train_test(df_size, p, d, q, model):
     )
     data2 = [train_plot, test_plot, forecast_plot]
     forecast_overlay = go.Figure(data=data2)
-    
-    #Predicting the future
-    # prediction = results_model.get_forecast(100)
-    # prediction_df = prediction.conf_int(alpha = 0.05) 
-    # prediction_df["predictions"] = results_model.predict(start = prediction_df.index[0], end = prediction_df.index[-1])
-    # prediction_df.index = pd.RangeIndex(start=df.index[-1], stop=df.index[-1]+100, step=1)
-    # prediction_out = prediction_df["predictions"]
+    print(acceleration.iloc[:,1])
+    # Predicting the future
+
+    results_final_prediction= model_final_prediction.fit()
+    prediction1 = results_final_prediction.get_forecast(prediction_size)
+    prediction_df_1= prediction1.conf_int(alpha = 0.05) 
+    print (type(prediction_size))
+    prediction_df_1["predictions"] = results_final_prediction.predict(start = prediction_df_1.index[0], end = prediction_df_1.index[-1])
+    prediction_df_1.index = pd.RangeIndex(start=acceleration.index[-1], stop=acceleration.index[-1]+prediction_size, step=1)
+    prediction_out1 = prediction_df_1["predictions"]
 
     #Plot
     prediction_plot = go.Scatter(
-        x = prediction_out.index,
-        y = prediction_out,
+        x = prediction_out1.index,
+        y = prediction_out1,
         name = 'prediction',
         line_color = scania_green
     )
     df_plot = go.Scatter(
-        x = df.index,
-        y = df.iloc[:,0],
+        x = acceleration.index,
+        y = acceleration.iloc[:,0],
         name = 'original dataset',
-        line_color = scania_red
+        line_color = scania_blue1
     )
 
     data3 = [prediction_plot, df_plot]
@@ -371,6 +376,7 @@ def train_test(df_size, p, d, q, model):
     fig.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
     fig2.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
     forecast_overlay.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
+    prediction_plot.update_layout(plot_bgcolor = scania_white, paper_bgcolor = scania_white, font_family = 'Scania Sans')
     return fig, fig2, forecast_overlay, html.H5(f"Your RMSE value is: {rmse}"), prediction_plot
 
 
