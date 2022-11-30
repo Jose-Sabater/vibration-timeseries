@@ -7,6 +7,7 @@ There is also a dash app built within to visualize all results for the non-progr
 
 ### Exploration  
 ![plot](./assets/histogram.png)  
+![plot](./assets/boxplot.png) 
 ![plot](./assets/violin_charts.png) 
 ### Forecasting
 ![plot](./assets/test_train.png)
