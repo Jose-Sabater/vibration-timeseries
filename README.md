@@ -1,4 +1,4 @@
-# cbm-timeseries
+# Vibration and Temperature Data -timeseries
 
 ## Description
 A project to analyze time series data from vibration and temperature sensors. The idea is to do an exploration of the data and the visualize it.  
