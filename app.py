@@ -4,7 +4,6 @@ import plotly.graph_objects as go
 import pandas as pd
 from utils import main_function, df_serial_index, df_test_train
 import warnings
-from datetime import date
 import base64
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
@@ -14,7 +13,7 @@ import time
 
 warnings.filterwarnings("ignore")
 
-file_path = "acceleration.csv"
+file_path = "./data/acceleration.csv"
 time_header = "Time"
 ts_category = "acceleration"
 image_filename = "assets/scania_symbol.svg"
@@ -45,18 +44,6 @@ app.layout = html.Div(
             [
                 html.Div(
                     [
-                        html.Img(
-                            src=app.get_asset_url("scania_symbol.svg").format(
-                                encoded_image
-                            ),
-                            id="logo",
-                        ),
-                        html.Img(
-                            src=app.get_asset_url(
-                                "scania_wordmark_blue_rgb.svg"
-                            ).format(encoded_image),
-                            id="wordmark",
-                        ),
                         html.H1(children="Timeseries", id="Title"),
                     ],
                     id="Header",

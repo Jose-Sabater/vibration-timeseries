@@ -20,7 +20,7 @@ There is also a dash app built within to visualize all results for the non-progr
 ![plot](./assets/forecast_alldata.png)
 
 ## Usage
-acceleration.ipynb is a thorough exploration of the data including ARIMA and SARIMA forecasting
+acceleration.ipynb is a thorough exploration of the data including ARIMA and SARIMA forecasting  
 run app.py -- is the Dash application which feeds from utils and currently acceleration.csv  
 
 ## Roadmap
